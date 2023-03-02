@@ -1,14 +1,19 @@
 from flask import Flask, jsonify, request, render_template
 from model import Model
+from flask_cors import CORS
+
 
 app = Flask(__name__)
+cors = CORS(app)
+
+# cors = CORS(app, resources={"/": {"origins": "*"}})
 
 model = Model()
 
 @app.route('/audio', methods=['POST'])
 def audio():
     # Get the audio file from the request
-    file = request.form['mp3']
+    file = request.files['mp3']
 
     # transcribe the audio and set it
     model.setTranscription(file)
@@ -32,4 +37,4 @@ def text_output():
     return jsonify({'answer': answer})
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=4000)
