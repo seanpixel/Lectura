@@ -20,8 +20,9 @@ const Main = () => {
   const handleFileUpload = (event) => {
     setFile(event.target.files[0]);
   };
+
   const uploadMp3 = async () => {
-    // event.preventDefault();
+    console.log("test")
 
     return new Promise((resolve, reject) => {
       const mp3Data = new FormData();
@@ -29,13 +30,14 @@ const Main = () => {
 
       // const reader = new FileReader();
       // reader.readAsBinaryString(file);
-
+      console.log("request received")
       axios
-        .post("http://localhost:3200/audio", mp3Data) //could be post or get
+        .post("http://0.0.0.0:4000/audio", mp3Data) //could be post or get
         .then((response) => {
           console.log("MP3 uploaded successfully");
           console.log(response.data);
           setStudyGuide(response.data); //may be response.data.text
+          resolve("success")
         })
         .catch((error) => {
           console.error("Error uploading MP3");
@@ -46,7 +48,7 @@ const Main = () => {
   };
   const askQuestion = async () => {
     axios
-      .get("http://localhost:3200/question", question) //could be post or get
+      .get("http://0.0.0.0:4000/question", question) //could be post or get
       .then((response) => {
         console.log("Question uploaded successfully");
         console.log(response.data.answer);
@@ -57,16 +59,19 @@ const Main = () => {
         console.error(error);
       });
   };
-  const handleSubmit = async () => {
-    const output = await uploadMp3;
-    console.log(output);
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    console.log("button works")
+    await uploadMp3();
+
   };
-  const handleQuestion = async () => {
+  const handleQuestion = async (event) => {
+    event.preventDefault()
     const output = await askQuestion;
     console.log(output);
   };
   return (
-    <div className="dark:bg-black">
+    <div className="">
       <h1 className="text-6xl font-bold leading-snug mt-0 mb-2 text-teal-800 mb-0">
         Lectura
       </h1>
@@ -94,7 +99,7 @@ const Main = () => {
         {studyGuide && (
           <>
             <p className="font-mono py-7 text-left">{studyGuide.summary}</p>
-            {studyGuide.keyterms.map((element, index) => (
+            {/* {studyGuide.keyterms.map((element, index) => (
               <div id={index}>
                 <p className="font-mono text-left">
                   <span className="font-mono font-bold pr-5">
@@ -103,7 +108,7 @@ const Main = () => {
                   {element.definition}
                 </p>
               </div>
-            ))}
+            ))} */}
           </>
         )}
       </div>
