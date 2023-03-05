@@ -34,6 +34,19 @@ def divide_array(arr, n):
     return result
 
 
+def createDocs2(input):
+    if(input == ""):
+        return []
+    texts = input.split(". ")
+    texts = divide_array(texts, 7)
+    return [Document(page_content=t) for t in texts]
+    
+def answerQuestion2(question,transcript):
+    qa_chain = load_qa_chain(OpenAI(temperature=0.3), chain_type="map_reduce")
+    inputDoc = createDocs2(transcript)
+    answer = qa_chain.run(input_documents=inputDoc, question=question)
+    return answer
+
 class Model:
     def __init__(self):
         self.llm = OpenAI(temperature=0.3)
@@ -66,7 +79,7 @@ class Model:
     def getSummary(self):
         return self.summary
 
-    def answerQuestion(self, question):
+    def answerQuestion(self, question,transcript):
         answer = self.qa_chain.run(input_documents=self.docs, question=question)
         return answer
     
@@ -74,28 +87,3 @@ class Model:
     def getKeyTerms(self): # Work in Progress
         terms = {"term" : "definition"}
         return terms
-
-
-
-# llm = OpenAI(temperature=0.3)
-# file = open("example.mp3", "rb")
-# transcription = openai.Audio.transcribe("whisper-1", file)["text"]
-
-# print(transcription)
-
-# texts = transcription.split(". ")
-# texts = divide_array(texts, 7)
-
-# docs = [Document(page_content=t) for t in texts]
-
-
-# # Summarizing (TL:DR feature)
-# chain = load_summarize_chain(llm, chain_type="map_reduce")
-# print("Summary: ", chain.run(docs))
-
-# # Question and Answering
-# chain = load_qa_chain(llm, chain_type="map_reduce")
-# query = "What is supabase?"
-# print("Question:", query) 
-# print("Answer:",chain.run(input_documents=docs, question=query))
-
