@@ -1,28 +1,33 @@
 import React, { useState } from "react";
 import axios from "axios";
 import styled from "styled-components";
+import BarLoader from "react-spinners/BarLoader";
+import { usePromiseTracker, trackPromise } from "react-promise-tracker";
 
 const Main = () => {
-  const object = {
-    summary:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
-    keyterms: [
-      { term: "Term1", definition: "Definition1" },
-      { term: "Term2", definition: "Definition2" },
-      { term: "Term3", definition: "Definition3" },
-    ],
-  };
+  // const object = {
+  //   summary:
+  //     "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+  //   keyterms: [
+  //     { term: "Term1", definition: "Definition1" },
+  //     { term: "Term2", definition: "Definition2" },
+  //     { term: "Term3", definition: "Definition3" },
+  //   ],
+  // };
+  const { promiseInProgress } = usePromiseTracker();
+
   const [file, setFile] = useState(null);
-  const [studyGuide, setStudyGuide] = useState(object);
+  const [studyGuide, setStudyGuide] = useState(null);
   const [question, setQuestion] = useState("");
-  const [questionResponse,setQuestionResponse]= useState("")
+  const [questionResponse, setQuestionResponse] = useState("");
+  const [link, setLink] = useState("");
 
   const handleFileUpload = (event) => {
     setFile(event.target.files[0]);
   };
 
   const uploadMp3 = async () => {
-    console.log("test")
+    // event.preventDefault();
 
     return new Promise((resolve, reject) => {
       const mp3Data = new FormData();
@@ -30,29 +35,50 @@ const Main = () => {
 
       // const reader = new FileReader();
       // reader.readAsBinaryString(file);
-      console.log("request received")
-      axios
-        .post("http://0.0.0.0:4000/audio", mp3Data) //could be post or get
-        .then((response) => {
-          console.log("MP3 uploaded successfully");
-          console.log(response.data);
-          setStudyGuide(response.data); //may be response.data.text
-          resolve("success")
-        })
-        .catch((error) => {
-          console.error("Error uploading MP3");
-          console.error(error);
-          reject("error uploading MP3");
-        });
+      trackPromise(
+        axios
+          .post("http://127.0.0.1:5000/audio", mp3Data)
+          .then((response) => {
+            console.log("MP3 uploaded successfully");
+            console.log(response.data);
+            setStudyGuide(response.data); //may be response.data.text
+            resolve("success");
+          })
+          .catch((error) => {
+            console.error("Error uploading MP3");
+            console.error(error);
+            reject("error uploading MP3");
+          })
+      );
+    });
+  };
+  const getMp3 = async () => {
+    return new Promise((resolve, reject) => {
+
+      trackPromise(
+        axios
+          .post("http://127.0.0.1:5000/convert", {link: link})
+          .then((response) => {
+            console.log("MP3 uploaded successfully");
+            console.log(response.data);
+            setStudyGuide(response.data); //may be response.data.text
+            resolve("success");
+          })
+          .catch((error) => {
+            console.error("Error retreiving youtube video");
+            console.error(error);
+            reject("error uploading MP3");
+          })
+      );
     });
   };
   const askQuestion = async () => {
     axios
-      .get("http://0.0.0.0:4000/question", question) //could be post or get
+      .get("http://127.0.0.1:5000/question", question) //could be post or get
       .then((response) => {
         console.log("Question uploaded successfully");
         console.log(response.data.answer);
-        setQuestionResponse(response.data.answer); //may be response.data.text
+        setQuestionResponse(response.data.answer);
       })
       .catch((error) => {
         console.error("Error retreiving question");
@@ -60,35 +86,50 @@ const Main = () => {
       });
   };
   const handleSubmit = async (event) => {
-    event.preventDefault()
-    console.log("button works")
-    await uploadMp3();
-
+    event.preventDefault();
+    if (file) {
+      const output = await uploadMp3();
+      console.log(output)
+    } else if (link) {
+      const output = await getMp3();
+      console.log(output)
+    }
   };
-  const handleQuestion = async (event) => {
-    event.preventDefault()
-    const output = await askQuestion;
+  const handleQuestion = async () => {
+    const output = await askQuestion();
     console.log(output);
   };
   return (
-    <div className="">
+    <div className="dark:bg-black">
       <h1 className="text-6xl font-bold leading-snug mt-0 mb-2 text-teal-800 mb-0">
         Lectura
       </h1>
-      <p className="font-bold text-teal-700 mt-0">
+      <p className="font-bold text-lg text-teal-700 mt-0">
         Generate a study guide from your lecture recording!
       </p>
       <form
         className="my-5 mx-auto flex flex-col w-4/5"
         onSubmit={handleSubmit}
       >
-        <StyledFileSelect
-          accept=".mp3,audio/*"
-          type="file"
-          name="mp3"
-          onChange={handleFileUpload}
-          className="text-gray-400 font-bold"
-        />
+        <label className="font-bold text-lg text-left text-teal-700  mb-4">
+          Upload an MP3 Lecture Recording
+        </label>
+        <div className="flex w-1/2">
+          <StyledFileSelect
+            accept=".mp3,audio/*"
+            type="file"
+            name="mp3"
+            onChange={handleFileUpload}
+            className="text-gray-400 font-bold"
+          />
+          <p className="px-3 text-3xl text-teal-800">/</p>
+          <input
+            onChange={(event) => setLink(event.target.value)}
+            className="pl-3 text-gray-400 font-bold border w-52 "
+            placeholder="paste a youtube link"
+          ></input>
+        </div>
+
         <input
           className="my-5 bg-teal-600 hover:bg-teal-800 text-white font-bold py-2 px-4 rounded w-1/6"
           type="submit"
@@ -96,9 +137,13 @@ const Main = () => {
         />
       </form>
       <div className="mx-auto w-4/5">
+        {promiseInProgress && <BarLoader color="#00695c"></BarLoader>}
         {studyGuide && (
           <>
             <p className="font-mono py-7 text-left">{studyGuide.summary}</p>
+            <p className="font-mono py-7 text-left">
+              {studyGuide.transcription}
+            </p>
             {/* {studyGuide.keyterms.map((element, index) => (
               <div id={index}>
                 <p className="font-mono text-left">
@@ -137,7 +182,7 @@ const Main = () => {
 const StyledFileSelect = styled.input`
   border: 1px solid #00695c;
   border-radius: 5px;
-  width: 30%;
+  width: 200px;
   ::file-selector-button {
     font-weight: bold;
     color: white;
