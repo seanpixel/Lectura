@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request, render_template, make_response,send_file
 from model import Model
+import model as qna
 from flask_cors import CORS
 from pytube import YouTube
 from pydub import AudioSegment
@@ -8,6 +9,7 @@ from urllib.parse import urlparse, parse_qs
 import numpy as np
 import os
 import requests
+import summarize
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -21,16 +23,21 @@ model = Model()
 
 @app.route('/audio', methods=['POST'])
 def audio():
+
+
     # Get the audio file from the request
     file = request.files['mp3']
 
     # transcribe the audio and set it
     model.setTranscription(file)
     transcription = model.getTranscription()
+    # model.setSummary(transcription)
+    
+    summary = summarize.summarize_text(transcription)
 
     # summarize the transcription and set it
-    model.setSummary()
-    summary = model.getSummary()
+    # model.setSummary()
+    # summary = model.getSummary()
 
     # Return the transcription as a JSON response
     return jsonify({'transcription': transcription, 'summary': summary})
@@ -38,9 +45,11 @@ def audio():
 @app.route('/question', methods=['POST'])
 def text_output():
     # Get the text input from the form
-    question = request.form['text']
+    data = request.get_json()
+    question = data['question']
+    transcription = data['transcription']
 
-    answer = model.answerQuestion(question)
+    answer = qna.answerQuestion2(question,transcription)
 
     # Return the processed text as a JSON response
     return jsonify({'answer': answer})
@@ -67,4 +76,3 @@ def convert():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=4000)
-    
