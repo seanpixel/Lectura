@@ -21,6 +21,11 @@ const Main = () => {
   const [question, setQuestion] = useState("");
   const [questionResponse, setQuestionResponse] = useState("");
   const [link, setLink] = useState("");
+  const [showText, setShowText] = useState(false);
+
+  const toggleText = () => {
+    setShowText(!showText);
+  };
 
   const handleFileUpload = (event) => {
     setFile(event.target.files[0]);
@@ -54,14 +59,14 @@ const Main = () => {
   };
   const getMp3 = async () => {
     return new Promise((resolve, reject) => {
-
       trackPromise(
         axios
-          .post("http://127.0.0.1:5000/convert", {link: link})
+          .post("http://127.0.0.1:5000/convert", { link: link })
           .then((response) => {
             console.log("MP3 uploaded successfully");
             console.log(response.data);
             setStudyGuide(response.data); //may be response.data.text
+            // console.log(response.data.summary.split("\n"));
             resolve("success");
           })
           .catch((error) => {
@@ -74,7 +79,10 @@ const Main = () => {
   };
   const askQuestion = async () => {
     axios
-      .get("http://127.0.0.1:5000/question", question) //could be post or get
+      .post("http://127.0.0.1:5000/question", {
+        question: question,
+        transcription: studyGuide.transcription,
+      }) //could be post or get
       .then((response) => {
         console.log("Question uploaded successfully");
         console.log(response.data.answer);
@@ -89,13 +97,14 @@ const Main = () => {
     event.preventDefault();
     if (file) {
       const output = await uploadMp3();
-      console.log(output)
+      console.log(output);
     } else if (link) {
       const output = await getMp3();
-      console.log(output)
+      console.log(output);
     }
   };
-  const handleQuestion = async () => {
+  const handleQuestion = async (event) => {
+    event.preventDefault();
     const output = await askQuestion();
     console.log(output);
   };
@@ -140,10 +149,32 @@ const Main = () => {
         {promiseInProgress && <BarLoader color="#00695c"></BarLoader>}
         {studyGuide && (
           <>
-            <p className="font-mono py-7 text-left">{studyGuide.summary}</p>
-            <p className="font-mono py-7 text-left">
-              {studyGuide.transcription}
-            </p>
+            <p className="font-bold font-mono text-left">Bulletpoints:</p>
+            {studyGuide.summary
+              .replace(/Bulletpoints:/g, "")
+              .split("\n")
+              .map((item) => {
+                return (
+                  <>{item && <p className="font-mono text-left">{item}</p>}</>
+                );
+              })}
+            {/* <p className="font-mono py-7 text-left">{studyGuide.summary}</p> */}
+            <div className="my-5 flex justify-start items-start gap-5">
+              <p className="font-bold font-mono text-left">Transcription:</p>
+              <button
+                className=" bg-gray-300 hover:bg-teal-500 text-white font-bold rounded w-40"
+                onClick={toggleText}
+              >
+                Toggle Text
+              </button>
+            </div>
+
+            {showText && (
+              <p className="font-mono py-7 text-left">
+                {studyGuide.transcription}
+              </p>
+            )}
+            <p className="font-bold font-mono text-left">Key Terms:</p>
             {/* {studyGuide.keyterms.map((element, index) => (
               <div id={index}>
                 <p className="font-mono text-left">
@@ -176,6 +207,9 @@ const Main = () => {
           value="Generate"
         />
       </form>
+      <div className="mx-auto w-4/5">
+        <p className="font-mono py-7 text-left">{questionResponse}</p>
+      </div>
     </div>
   );
 };
@@ -192,3 +226,4 @@ const StyledFileSelect = styled.input`
   }
 `;
 export default Main;
+
