@@ -84,6 +84,8 @@ class Model:
         return answer
     
 
-    def getKeyTerms(self): # Work in Progress
-        terms = {"term" : "definition"}
+    def getKeyTerms(self):
+        prompt = f"Given a summary of a lecture, output key terms that seem important to understand\nSummary: {self.summary}\nOutput the terms and their definition exactly in the following format:\n<term> <definition>\n<term> <definition>\n<term> <definition>\n\nKey Terms:"
+        output = generate(prompt)
+        terms = [line.split(": ") for line in output.strip().splitlines()]
         return terms
