@@ -42,7 +42,7 @@ const Main = () => {
       // reader.readAsBinaryString(file);
       trackPromise(
         axios
-          .post("http://0.0.0.0:4000/audio", mp3Data)
+          .post("lectura-backend.herokuapp.com/audio", mp3Data)
           .then((response) => {
             console.log("MP3 uploaded successfully");
             console.log(response.data);
@@ -61,7 +61,7 @@ const Main = () => {
     return new Promise((resolve, reject) => {
       trackPromise(
         axios
-          .post("http://0.0.0.0:4000/convert", { link: link })
+          .post("lectura-backend.herokuapp.com/convert", { link: link })
           .then((response) => {
             console.log("MP3 uploaded successfully");
             console.log(response.data);
@@ -79,7 +79,7 @@ const Main = () => {
   };
   const askQuestion = async () => {
     axios
-      .post("http://0.0.0.0:4000/question", {
+      .post("lectura-backend.herokuapp.com/question", {
         question: question,
         transcription: studyGuide.transcription,
       }) //could be post or get
