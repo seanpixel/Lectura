@@ -1,0 +1,7 @@
+Flask==1.1.2
+Flask_Cors==3.0.10
+langchain==0.0.106
+moviepy==1.0.3
+openai==0.27.0
+pytube==12.1.2
+requests==2.28.1

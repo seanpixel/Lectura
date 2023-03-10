@@ -1,0 +1,1 @@
+web: python --pythonpath backend/server.py
