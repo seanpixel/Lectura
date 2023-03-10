@@ -3,8 +3,9 @@ from langchain.docstore.document import Document
 from langchain.chains.summarize import load_summarize_chain
 from langchain.chains.question_answering import load_qa_chain
 from langchain import OpenAI
+import os
 
-openai.api_key = "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"
+openai.api_key = os.environ["OPENAI-API-KEY"]
 
 def generate(prompt):
     response = openai.Completion.create(
